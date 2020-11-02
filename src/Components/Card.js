@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { withRouter } from 'react-router-dom';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import Grid from '@material-ui/core/Grid';
 import CardContent from '@material-ui/core/CardContent';
-import LinearProgress from '@material-ui/core/LinearProgress';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
@@ -14,6 +14,8 @@ import useInterval from '../useInterval';
 import SongList from './SongList';
 import Slider from '@material-ui/core/Slider';
 import VolumeDown from '@material-ui/icons/VolumeDown';
+import { Context } from '../Context/SongContext';
+import Button from '@material-ui/core/Button';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -42,76 +44,24 @@ const useStyles = makeStyles((theme) => ({
   bar: {
     justifyContent: 'center'
   },
-  slider:{
-    marginRight:3
+  slider: {
+    marginRight: 3
   }
 }));
 
-const songs = [{
-  id: 0,
-  isPlaying: true,
-  songName: "Chill",
-  src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3",
-  imageUrl: "https://www.laurenswilliam.nl/wp-content/uploads/2016/09/Chill-music-update-1.jpeg"
-},
-{
-  id: 1,
-  songName: "Twist",
-  isPlaying: false,
-  src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-  imageUrl: "https://thumbs-prod.si-cdn.com/Vj7Cmc62xkQLwQZLiX1SbOV89ik=/420x240/https://public-media.si-cdn.com/filer/cd/0e/cd0efbec-bc15-4f38-894a-7e0e6f5968b8/campfire_edit.jpg"
-},
-{
-  id: 2,
-  songName: "Free Bird",
-  isPlaying: false,
-  src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-  imageUrl: "https://www.laurenswilliam.nl/wp-content/uploads/2016/09/Chill-music-update-1.jpeg"
-},
-{
-  id: 3,
-  songName: "Twister",
-  isPlaying: false,
-  src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
-  imageUrl: "https://thumbs-prod.si-cdn.com/Vj7Cmc62xkQLwQZLiX1SbOV89ik=/420x240/https://public-media.si-cdn.com/filer/cd/0e/cd0efbec-bc15-4f38-894a-7e0e6f5968b8/campfire_edit.jpg"
-},
-{
-  id: 4,
-  songName: "Go Easy",
-  isPlaying: false,
-  src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3",
-  imageUrl: "https://i.ytimg.com/vi/VJ52yJwN_K0/maxresdefault.jpg"
-}
-];
 
-const reducer = (state, action) => {
-  switch (action.type) {
-    case 'select_song':
-      var songs = [];
-      state.forEach(item => {
-        if (action.payload.id !== item.id) {
-          songs.push({ ...item, isPlaying: false })
-        } else {
-          songs.push({ ...item, isPlaying: true })
-        }
-      })
-      return songs;
-    default:
-      return state
-  }
-}
-export default function MediaControlCard() {
+const MediaControlCard = ({ history }) => {
   const classes = useStyles();
   const theme = useTheme();
-  const [allsongs, dispatch] = useReducer(reducer, [...songs]);
   const [progress, setProgress] = useState(0);
   const audioPlayerRef = React.useRef(null);
-  const [playing, setPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(50);
   const [forcedProgress, setForcedProgress] = useState(0);
+  const [isFirst, setFirst] = useState(true);
 
+  const { state, playPause, selectSong, setCurrentDuration, setCurrentTime, setVolume, setAudioPlayer } = useContext(Context);
+useEffect(() => {
+    setProgress(state.currentTime / (state.currentDuration));
+  }, [])
   const Mod = (dividend, divisor) => {
     if (dividend < 0) {
       return (dividend + divisor);
@@ -120,39 +70,68 @@ export default function MediaControlCard() {
     }
   }
   const songSelection = (id_current_song, prev_or_next) => {
-    console.log("title:" + songs[id_current_song].songName);
-    console.log("url:" + songs[id_current_song].src);
+    console.log("title:" + state.songs[id_current_song].songName);
+    console.log("url:" + state.songs[id_current_song].src);
     console.log("elapsed time:" + audioPlayerRef.current.currentTime);
-    dispatch({ type: 'select_song', payload: { id: Mod(id_current_song + prev_or_next, 5) } })
+    selectSong(Mod(id_current_song + prev_or_next, 5));
   }
   useEffect(() => {
     if (audioPlayerRef && audioPlayerRef.current) {
 
-      if (playing) {
+      if (state.playing) {
         audioPlayerRef.current.play();
       } else {
         audioPlayerRef.current.pause();
       }
     }
   }
-    , [playing])
+    , [state.playing])
   useEffect(() => {
     if (audioPlayerRef && audioPlayerRef.current) {
-      audioPlayerRef.current.currentTime = 0;
-      if (playing) {
+      if (state.playing) {
         audioPlayerRef.current.play();
       } else {
         audioPlayerRef.current.pause();
       }
     }
   }
-    , [allsongs])
+    , [state.songs])
 
   useEffect(() => {
     if (audioPlayerRef && audioPlayerRef.current) {
-      audioPlayerRef.current.volume = volume / 100;
+      audioPlayerRef.current.volume = state.currentVolume / 100;
     }
-  }, [volume])
+  }, [state.currentVolume])
+
+  useEffect(() => {
+    if (audioPlayerRef && audioPlayerRef.current) {
+      if (isFirst) {
+        audioPlayerRef.current.currentTime = state.currentTime;
+        audioPlayerRef.current.currentDuration = state.currentDuration;
+        setFirst(false);
+      } else {
+        audioPlayerRef.current.currentTime = (forcedProgress / 100) * (state.currentDuration);
+        setProgress(((audioPlayerRef.current.currentTime / audioPlayerRef.current.duration) * 100));
+        setCurrentTime(audioPlayerRef.current.currentTime);
+        setCurrentDuration(audioPlayerRef.current.duration);
+      }
+
+    }
+  }, [forcedProgress]);
+  useInterval(() => {
+    if (audioPlayerRef && audioPlayerRef.current) {
+      if (isFirst) {
+        audioPlayerRef.current.currentTime = state.currentTime;
+        audioPlayerRef.current.currentDuration = state.currentDuration;
+        setFirst(false);
+      } else {
+        setProgress((audioPlayerRef.current.currentTime / audioPlayerRef.current.duration) * 100);
+        setCurrentTime(audioPlayerRef.current.currentTime);
+        setCurrentDuration(audioPlayerRef.current.duration);
+      }
+
+    }
+  }, 200);
 
   const setTime = (val) => {
     const min = (val / 60).toFixed(0).toString();
@@ -160,26 +139,12 @@ export default function MediaControlCard() {
     return min + ":" + second;
   }
 
-  const handleChange = (event, newValue) => {
+  const handleVolume = (event, newValue) => {
     setVolume(newValue);
   };
-  useEffect(() => {
-    if (audioPlayerRef && audioPlayerRef.current) {
-      audioPlayerRef.current.currentTime = (forcedProgress / 100) * (duration);
-      setProgress(((audioPlayerRef.current.currentTime / audioPlayerRef.current.duration) * 100));
-      setCurrentTime(audioPlayerRef.current.currentTime);
-      setDuration(audioPlayerRef.current.duration);
-    }
-  }, [forcedProgress]);
-  useInterval(() => {
-    if (audioPlayerRef && audioPlayerRef.current) {
-      setProgress((audioPlayerRef.current.currentTime / audioPlayerRef.current.duration) * 100);
-      setCurrentTime(audioPlayerRef.current.currentTime);
-      setDuration(audioPlayerRef.current.duration);
-    }
-  }, 1000);
 
-  const currentSong = allsongs.filter(item => item.isPlaying === true)[0];
+
+  const currentSong = state.songs.filter(item => item.isPlaying === true)[0];
   return (
     <div className={classes.rootC}>
       <div style={{ flex: 1, borderRadius: 5 }}>
@@ -219,9 +184,9 @@ export default function MediaControlCard() {
                 }}>
                   {theme.direction === 'rtl' ? <SkipNextIcon style={{ color: '#d900bd' }} /> : <SkipPreviousIcon style={{ color: '#d900bd' }} />}
                 </IconButton>
-                <IconButton aria-label="play/pause" onClick={() => setPlaying(prev => !prev)}>
+                <IconButton aria-label="play/pause" onClick={() => playPause()}>
                   {
-                    playing
+                    state.playing
                       ? <PauseIcon className={classes.playIcon} style={{ color: '#d900bd' }} />
                       : <PlayArrowIcon className={classes.playIcon} style={{ color: '#d900bd' }} />
                   }
@@ -239,20 +204,26 @@ export default function MediaControlCard() {
                     <VolumeDown />
                   </Grid>
                   <Grid item xs={10}>
-                    <Slider value={volume} onChange={handleChange} aria-labelledby="continuous-slider" className={classes.slider}/>
+                    <Slider value={state.currentVolume} onChange={handleVolume} aria-labelledby="continuous-slider" className={classes.slider} />
                   </Grid>
                 </Grid>
 
               </Grid>
             </Grid>
           </div>
+          <Button variant="contained" color="secondary" onClick={() => {
+            setAudioPlayer();
+            history.push('/');
+          }}>
+            Minimize Audio Player
+      </Button>
         </Card>
       </div>
       <div style={{ flex: .2 }}>
         <SongList
-          data={allsongs}
+          data={state.songs}
           onClick={(id) => {
-            dispatch({ type: 'select_song', payload: { id } });
+            selectSong(id);
           }}
         />
       </div>
@@ -260,3 +231,4 @@ export default function MediaControlCard() {
 
   );
 }
+export default withRouter(MediaControlCard);
