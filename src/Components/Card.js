@@ -125,7 +125,7 @@ export default function MediaControlCard() {
   const currentSong = allsongs.filter(item => item.isPlaying === true)[0];
   return (
     <div className={classes.rootC}>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1,borderRadius:5 }}>
         <audio
           ref={audioPlayerRef}
           src={currentSong.src}
@@ -134,14 +134,15 @@ export default function MediaControlCard() {
         <Card className={classes.root}>
           <div style={{ flex: 8 }}>
             <img
-              style={{ width: window.innerWidth * .8, height: window.innerHeight * .835, flex: 1 }}
+              style={{ width: window.innerWidth * .8,border:'3px solid #d900bd', height: window.innerHeight * .795, flex: 1,borderRadius:20 }}
               src={currentSong.imageUrl}
               alt={currentSong.songName}
+              
             />
           </div>
           <div className={classes.details}>
             <CardContent className={classes.content}>
-              <Typography component="h5" variant="h5">
+              <Typography component="h4" variant="h4" style={{fontWeight:'bold',color:'#d900bd'}}>
                 {currentSong.songName}
               </Typography>
             </CardContent>
@@ -149,19 +150,19 @@ export default function MediaControlCard() {
               <IconButton aria-label="previous" onClick={() => {
                 songSelection(currentSong.id,-1);
               }}>
-                {theme.direction === 'rtl' ? <SkipNextIcon /> : <SkipPreviousIcon />}
+                {theme.direction === 'rtl' ? <SkipNextIcon style={{color:'#d900bd'}}/> : <SkipPreviousIcon style={{color:'#d900bd'}}/>}
               </IconButton>
               <IconButton aria-label="play/pause" onClick={() => setPlaying(prev => !prev)}>
                 {
                   playing
-                    ? <PauseIcon className={classes.playIcon} />
-                    : <PlayArrowIcon className={classes.playIcon} />
+                    ? <PauseIcon className={classes.playIcon} style={{color:'#d900bd'}}/>
+                    : <PlayArrowIcon className={classes.playIcon} style={{color:'#d900bd'}} />
                 }
               </IconButton>
               <IconButton aria-label="next" onClick={() => {
                 songSelection(currentSong.id,1);
               }}>
-                {theme.direction === 'rtl' ? <SkipPreviousIcon /> : <SkipNextIcon />}
+                {theme.direction === 'rtl' ? <SkipPreviousIcon style={{color:'#d900bd'}}/> : <SkipNextIcon style={{color:'#d900bd'}}/>}
               </IconButton>
             </div>
           </div>

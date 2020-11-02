@@ -8,8 +8,9 @@ import SimpleCard from './SimpleCard';
 const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
+    height: '100%',
     maxWidth: '36ch',
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: '#e4eced'
   }
 }));
 
@@ -24,7 +25,6 @@ const SongList = ({data,onClick}) => {
             onClick={()=>onClick(item.id)}
             isActive={item.isPlaying}
           />
-          <Divider variant="inset" component="li" />
         </div>)
       }
       
