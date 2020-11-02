@@ -59,7 +59,7 @@ const MediaControlCard = ({ history }) => {
   const [isFirst, setFirst] = useState(true);
 
   const { state, playPause, selectSong, setCurrentDuration, setCurrentTime, setVolume, setAudioPlayer } = useContext(Context);
-useEffect(() => {
+  useEffect(() => {
     setProgress(state.currentTime / (state.currentDuration));
   }, [])
   const Mod = (dividend, divisor) => {
@@ -164,9 +164,21 @@ useEffect(() => {
           </div>
           <div className={classes.details}>
             <CardContent className={classes.content}>
-              <Typography component="h4" variant="h4" style={{ fontWeight: 'bold', color: '#d900bd' }}>
-                {currentSong.songName}
-              </Typography>
+              <Grid container spacing={1}>
+                <Grid item xs>
+                  <Typography component="h4" variant="h4" style={{ fontWeight: 'bold', color: '#d900bd' }}>
+                    {currentSong.songName}
+                  </Typography>
+                </Grid>
+                <Grid item xs>
+                  <Button variant="contained" color="secondary" onClick={() => {
+                    setAudioPlayer();
+                    history.push('/');
+                  }}>
+                    Minimize Audio Player
+                  </Button>
+                </Grid>
+              </Grid>
             </CardContent>
             <Grid container spacing={1} className={classes.bar}>
               <Grid item xs={12} sm={12}>
@@ -211,12 +223,7 @@ useEffect(() => {
               </Grid>
             </Grid>
           </div>
-          <Button variant="contained" color="secondary" onClick={() => {
-            setAudioPlayer();
-            history.push('/');
-          }}>
-            Minimize Audio Player
-      </Button>
+
         </Card>
       </div>
       <div style={{ flex: .2 }}>

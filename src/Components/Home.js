@@ -144,9 +144,12 @@ const Home = () => {
   const currentSong = state.songs.filter(item => item.isPlaying === true)[0];
   return (
     <div>
-      <h1>
+    <div height={800}>
+    <h1>
         Hello! This is a music player app.To use the music player click <Link to='/musicplayer'>Here</Link>
       </h1>
+    </div>
+      
       {
         state.isAudioPlayerActive
           ? <div>
