@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useReducer } from 'react';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
+import Grid from '@material-ui/core/Grid';
 import CardContent from '@material-ui/core/CardContent';
-import CardMedia from '@material-ui/core/CardMedia';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
 import PauseIcon from '@material-ui/icons/Pause';
-import ViewListIcon from '@material-ui/icons/ViewList';
-import SimpleCard from './SimpleCard';
+import useInterval from '../useInterval';
 import SongList from './SongList';
+import Slider from '@material-ui/core/Slider';
+import VolumeDown from '@material-ui/icons/VolumeDown';
+
 
 const useStyles = makeStyles((theme) => ({
   rootC: {
@@ -36,6 +39,12 @@ const useStyles = makeStyles((theme) => ({
     height: 38,
     width: 38,
   },
+  bar: {
+    justifyContent: 'center'
+  },
+  slider:{
+    marginRight:3
+  }
 }));
 
 const songs = [{
@@ -95,8 +104,13 @@ export default function MediaControlCard() {
   const classes = useStyles();
   const theme = useTheme();
   const [allsongs, dispatch] = useReducer(reducer, [...songs]);
+  const [progress, setProgress] = useState(0);
   const audioPlayerRef = React.useRef(null);
   const [playing, setPlaying] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(50);
+  const [forcedProgress, setForcedProgress] = useState(0);
 
   const Mod = (dividend, divisor) => {
     if (dividend < 0) {
@@ -109,10 +123,11 @@ export default function MediaControlCard() {
     console.log("title:" + songs[id_current_song].songName);
     console.log("url:" + songs[id_current_song].src);
     console.log("elapsed time:" + audioPlayerRef.current.currentTime);
-    dispatch({type:'select_song',payload:{id:Mod(id_current_song+prev_or_next,5)}})
+    dispatch({ type: 'select_song', payload: { id: Mod(id_current_song + prev_or_next, 5) } })
   }
   useEffect(() => {
     if (audioPlayerRef && audioPlayerRef.current) {
+
       if (playing) {
         audioPlayerRef.current.play();
       } else {
@@ -120,59 +135,124 @@ export default function MediaControlCard() {
       }
     }
   }
-    , [playing, allsongs])
+    , [playing])
+  useEffect(() => {
+    if (audioPlayerRef && audioPlayerRef.current) {
+      audioPlayerRef.current.currentTime = 0;
+      if (playing) {
+        audioPlayerRef.current.play();
+      } else {
+        audioPlayerRef.current.pause();
+      }
+    }
+  }
+    , [allsongs])
+
+  useEffect(() => {
+    if (audioPlayerRef && audioPlayerRef.current) {
+      audioPlayerRef.current.volume = volume / 100;
+    }
+  }, [volume])
+
+  const setTime = (val) => {
+    const min = (val / 60).toFixed(0).toString();
+    const second = (val % 60).toFixed(0).toString();
+    return min + ":" + second;
+  }
+
+  const handleChange = (event, newValue) => {
+    setVolume(newValue);
+  };
+  useEffect(() => {
+    if (audioPlayerRef && audioPlayerRef.current) {
+      audioPlayerRef.current.currentTime = (forcedProgress / 100) * (duration);
+      setProgress(((audioPlayerRef.current.currentTime / audioPlayerRef.current.duration) * 100));
+      setCurrentTime(audioPlayerRef.current.currentTime);
+      setDuration(audioPlayerRef.current.duration);
+    }
+  }, [forcedProgress]);
+  useInterval(() => {
+    if (audioPlayerRef && audioPlayerRef.current) {
+      setProgress((audioPlayerRef.current.currentTime / audioPlayerRef.current.duration) * 100);
+      setCurrentTime(audioPlayerRef.current.currentTime);
+      setDuration(audioPlayerRef.current.duration);
+    }
+  }, 1000);
 
   const currentSong = allsongs.filter(item => item.isPlaying === true)[0];
   return (
     <div className={classes.rootC}>
-      <div style={{ flex: 1,borderRadius:5 }}>
+      <div style={{ flex: 1, borderRadius: 5 }}>
         <audio
           ref={audioPlayerRef}
           src={currentSong.src}
           type="audio/mp3"
         />
         <Card className={classes.root}>
-          <div style={{ flex: 8 }}>
+          <div>
             <img
-              style={{ width: window.innerWidth * .8,border:'3px solid #d900bd', height: window.innerHeight * .795, flex: 1,borderRadius:20 }}
+              style={{ width: '95%', height: window.innerHeight * .73, flex: 1 }}
               src={currentSong.imageUrl}
               alt={currentSong.songName}
-              
+
             />
           </div>
           <div className={classes.details}>
             <CardContent className={classes.content}>
-              <Typography component="h4" variant="h4" style={{fontWeight:'bold',color:'#d900bd'}}>
+              <Typography component="h4" variant="h4" style={{ fontWeight: 'bold', color: '#d900bd' }}>
                 {currentSong.songName}
               </Typography>
             </CardContent>
-            <div className={classes.controls}>
-              <IconButton aria-label="previous" onClick={() => {
-                songSelection(currentSong.id,-1);
-              }}>
-                {theme.direction === 'rtl' ? <SkipNextIcon style={{color:'#d900bd'}}/> : <SkipPreviousIcon style={{color:'#d900bd'}}/>}
-              </IconButton>
-              <IconButton aria-label="play/pause" onClick={() => setPlaying(prev => !prev)}>
-                {
-                  playing
-                    ? <PauseIcon className={classes.playIcon} style={{color:'#d900bd'}}/>
-                    : <PlayArrowIcon className={classes.playIcon} style={{color:'#d900bd'}} />
-                }
-              </IconButton>
-              <IconButton aria-label="next" onClick={() => {
-                songSelection(currentSong.id,1);
-              }}>
-                {theme.direction === 'rtl' ? <SkipPreviousIcon style={{color:'#d900bd'}}/> : <SkipNextIcon style={{color:'#d900bd'}}/>}
-              </IconButton>
-            </div>
+            <Grid container spacing={1} className={classes.bar}>
+              <Grid item xs={12} sm={12}>
+                <Slider value={progress} onChange={(event, newVal) => setForcedProgress(newVal)} aria-labelledby="continuous-slider" style={{ margin: 10 }} />
+              </Grid>
+              {/* <Grid item xs={12} sm={1} className={classes.bar}>
+                {setTime(currentTime)}/{setTime(duration)}
+              </Grid> */}
+            </Grid>
+
+            <Grid container className={classes.controls}>
+              <Grid item xs={8}>
+                <IconButton aria-label="previous" onClick={() => {
+                  songSelection(currentSong.id, -1);
+                }}>
+                  {theme.direction === 'rtl' ? <SkipNextIcon style={{ color: '#d900bd' }} /> : <SkipPreviousIcon style={{ color: '#d900bd' }} />}
+                </IconButton>
+                <IconButton aria-label="play/pause" onClick={() => setPlaying(prev => !prev)}>
+                  {
+                    playing
+                      ? <PauseIcon className={classes.playIcon} style={{ color: '#d900bd' }} />
+                      : <PlayArrowIcon className={classes.playIcon} style={{ color: '#d900bd' }} />
+                  }
+                </IconButton>
+                <IconButton aria-label="next" onClick={() => {
+                  songSelection(currentSong.id, 1);
+                }}>
+                  {theme.direction === 'rtl' ? <SkipPreviousIcon style={{ color: '#d900bd' }} /> : <SkipNextIcon style={{ color: '#d900bd' }} />}
+                </IconButton>
+              </Grid>
+
+              <Grid item xs={4} style={{ width: 400, alignItems: 'center', justifyContent: 'center' }}>
+                <Grid container spacing={1}>
+                  <Grid item xs={2}>
+                    <VolumeDown />
+                  </Grid>
+                  <Grid item xs={10}>
+                    <Slider value={volume} onChange={handleChange} aria-labelledby="continuous-slider" className={classes.slider}/>
+                  </Grid>
+                </Grid>
+
+              </Grid>
+            </Grid>
           </div>
         </Card>
       </div>
       <div style={{ flex: .2 }}>
         <SongList
           data={allsongs}
-          onClick={(id)=>{
-            dispatch({ type: 'select_song', payload: {id} });
+          onClick={(id) => {
+            dispatch({ type: 'select_song', payload: { id } });
           }}
         />
       </div>
