@@ -1,0 +1,39 @@
+{
+  "songs": [
+    {
+      "id": 0,
+      "isPlaying": true,
+      "songName": "Chill",
+      "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3",
+      "imageUrl": "https://www.laurenswilliam.nl/wp-content/uploads/2016/09/Chill-music-update-1.jpeg"
+    },
+    {
+      "id": 1,
+      "songName": "Twist",
+      "isPlaying": false,
+      "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+      "imageUrl": "https://thumbs-prod.si-cdn.com/Vj7Cmc62xkQLwQZLiX1SbOV89ik=/420x240/https://public-media.si-cdn.com/filer/cd/0e/cd0efbec-bc15-4f38-894a-7e0e6f5968b8/campfire_edit.jpg"
+    },
+    {
+      "id": 2,
+      "songName": "Free Bird",
+      "isPlaying": false,
+      "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+      "imageUrl": "https://www.laurenswilliam.nl/wp-content/uploads/2016/09/Chill-music-update-1.jpeg"
+    },
+    {
+      "id": 3,
+      "songName": "Twister",
+      "isPlaying": false,
+      "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
+      "imageUrl": "https://thumbs-prod.si-cdn.com/Vj7Cmc62xkQLwQZLiX1SbOV89ik=/420x240/https://public-media.si-cdn.com/filer/cd/0e/cd0efbec-bc15-4f38-894a-7e0e6f5968b8/campfire_edit.jpg"
+    },
+    {
+      "id": 4,
+      "songName": "Go Easy",
+      "isPlaying": false,
+      "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3",
+      "imageUrl": "https://i.ytimg.com/vi/VJ52yJwN_K0/maxresdefault.jpg"
+    }
+  ]
+}
